@@ -6,20 +6,20 @@ function escapeRegex(text) {
 }
 
 module.exports.getAll = async (req, res, next) => {
-  const limit = req.query._limit || 10;
+  const limit = req.query._limit || 2;
   const page = req.query._page || 1;
-  console.log(req.query._search);
+
   function searchTerm() {
     if (req.query._search) {
       const regex = new RegExp(escapeRegex(req.query._search), "i");
-      return [{ title: regex }, { code: regex }];
+      return [{ name: regex }, { code: regex }];
     } else {
       return [{}];
     }
   }
 
   await Room.find({
-    $and: [{ softDelete: null }, {}],
+    $and: [{ softDelete: null }],
     $or: searchTerm(),
   })
     .skip(limit * page - limit)
@@ -35,6 +35,7 @@ module.exports.getAll = async (req, res, next) => {
             limit,
             page: Number(page),
             count: Math.ceil(total / limit),
+            total,
           },
         });
       });
