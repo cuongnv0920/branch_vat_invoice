@@ -1,14 +1,43 @@
 const Level = require("../models/level.model");
 const { validationResult } = require("express-validator");
 
+function escapeRegex(text) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+
 module.exports.getAll = async (req, res, next) => {
-  await Level.find()
-    .where({ softDelete: "" })
+  const limit = req.query._limit || 20;
+  const page = req.query._page || 1;
+
+  function searchTerm() {
+    if (req.query._search) {
+      const regex = new RegExp(escapeRegex(req.query._search), "i");
+      return [{ name: regex }];
+    } else {
+      return [{}];
+    }
+  }
+  await Level.find({
+    $and: [{ softDelete: null }],
+    $or: searchTerm(),
+  })
+    .skip(limit * page - limit)
+    .limit(limit)
     .sort({ sort: 1 })
     .exec((error, levels) => {
-      if (error) return res.status(400).json(error);
+      Level.countDocuments((error, total) => {
+        if (error) return res.status(400).json(error);
 
-      return res.status(200).json(levels.map(formatLevel));
+        return res.status(200).json({
+          levelList: levels.map(formatLevel),
+          paginations: {
+            limit,
+            page: Number(page),
+            count: Math.ceil(total / limit),
+            total,
+          },
+        });
+      });
     });
 };
 
@@ -21,6 +50,16 @@ function formatLevel(data) {
     createdAt,
   };
 }
+
+module.exports.get = async (req, res, next) => {
+  await Level.findById(req.params.id)
+    .where({ softDelete: "" })
+    .exec((error, level) => {
+      if (error) return res.status(400).json(error);
+
+      return res.status(200).json(level);
+    });
+};
 
 module.exports.create = async (req, res, next) => {
   const errors = [];

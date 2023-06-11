@@ -4,6 +4,10 @@ const md5 = require("md5");
 const jwt = require("jsonwebtoken");
 const defaultUser = require("../config/defaultUser");
 
+function escapeRegex(text) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+
 User.exists({ email: defaultUser.email }).then((user) => {
   if (!user) {
     return User.create({
@@ -18,15 +22,63 @@ User.exists({ email: defaultUser.email }).then((user) => {
 });
 
 module.exports.getAll = async (req, res, next) => {
-  await User.find()
-    .where({ softDelete: "" })
+  const limit = req.query._limit || 20;
+  const page = req.query._page || 1;
+
+  function searchTerm() {
+    // search
+    if (req.query._search) {
+      const regex = new RegExp(escapeRegex(req.query._search), "i");
+      return [{ fullName: regex }, { email: regex }];
+    } else {
+      return [{}];
+    }
+  }
+
+  function filterRoom() {
+    // filter room
+    if (req.query._filterRoom) {
+      return [{ softDelete: null }, { room: req.query._filterRoom }];
+    } else {
+      return [{ softDelete: null }];
+    }
+  }
+
+  function filterLevel() {
+    // filter level
+    if (req.query._filterLevel) {
+      return {
+        level: req.query._filterLevel,
+      };
+    } else {
+      return {};
+    }
+  }
+
+  await User.find({
+    $and: filterRoom(),
+    $or: searchTerm(),
+  })
+    .where(filterLevel())
+    .skip(limit * page - limit)
+    .limit(limit)
     .populate("room")
     .populate("level")
     .sort({ createdAt: 1 })
     .exec((error, users) => {
-      if (error) return res.status(400).json(error);
+      User.countDocuments((error, total) => {
+        if (error) return res.status(400).json(error);
 
-      return res.status(200).json(users.map(formatUser));
+        return res.status(200).json({
+          userList: users.map(formatUser),
+          paginations: {
+            limit,
+            page: Number(page),
+            count: Math.ceil(total / limit),
+            total,
+          },
+        });
+      });
     });
 };
 
