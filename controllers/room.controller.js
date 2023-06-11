@@ -6,7 +6,7 @@ function escapeRegex(text) {
 }
 
 module.exports.getAll = async (req, res, next) => {
-  const limit = req.query._limit || 2;
+  const limit = req.query._limit || 20;
   const page = req.query._page || 1;
 
   function searchTerm() {
@@ -30,7 +30,7 @@ module.exports.getAll = async (req, res, next) => {
         if (error) return res.status(400).json(error);
 
         return res.status(200).json({
-          rooms: rooms.map(formatRoom),
+          roomList: rooms.map(formatRoom),
           paginations: {
             limit,
             page: Number(page),
