@@ -4,7 +4,7 @@ const validator = require("../validators/user.validator");
 const controller = require("../controllers/user.controller");
 
 router.get("/getAll", controller.getAll);
-router.get("/get/:id");
+router.get("/get/:id", controller.get);
 router.post("/create", validator.validatorCreate(), controller.create);
 router.put("/update/:id", validator.validatorUpdate(), controller.update);
 router.put("/delete/:id", controller.delete);

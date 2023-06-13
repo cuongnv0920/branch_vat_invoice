@@ -9,6 +9,7 @@ const authRoute = require("./routes/auth.route");
 const userRoute = require("./routes/user.route");
 const levelRoute = require("./routes/level.route");
 const roomRoute = require("./routes/room.route");
+const invoiceRoute = require("./routes/invoice.route");
 
 // Connect database mongodb
 main()
@@ -35,6 +36,7 @@ app.use("/auth", authRoute);
 app.use("/room", roomRoute);
 app.use("/user", userRoute);
 app.use("/level", levelRoute);
+app.use("/invoice", invoiceRoute);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
