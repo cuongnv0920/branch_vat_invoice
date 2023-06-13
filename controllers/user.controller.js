@@ -75,7 +75,7 @@ module.exports.getAll = async (req, res, next) => {
             limit,
             page: Number(page),
             count: Math.ceil(total / limit),
-            total,
+            total: users.length,
           },
         });
       });
@@ -112,6 +112,18 @@ function formatUser(data) {
     createdAt,
   };
 }
+
+module.exports.get = async (req, res, next) => {
+  await User.findById(req.params.id)
+    .where({ softDelete: "" })
+    .populate("room")
+    .populate("level")
+    .exec((error, user) => {
+      if (error) return res.status(400).json(error);
+
+      return res.status(200).json(user);
+    });
+};
 
 module.exports.create = async (req, res, next) => {
   const email = req.body.email;

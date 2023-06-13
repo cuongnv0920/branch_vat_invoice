@@ -35,7 +35,7 @@ module.exports.getAll = async (req, res, next) => {
             limit,
             page: Number(page),
             count: Math.ceil(total / limit),
-            total,
+            total: rooms.length,
           },
         });
       });

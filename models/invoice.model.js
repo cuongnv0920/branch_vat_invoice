@@ -32,6 +32,30 @@ const invoiceSchema = new Schema({
     require: [true, "Vui lòng nhập Nội dung thanh toán."],
   },
 
+  createUser: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Users",
+  },
+
+  approveUser: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Users",
+  },
+
+  file_1: {
+    type: String,
+    require: [true, "Vui đính kèm file hóa đơn .xml."],
+  },
+
+  file_2: {
+    type: String,
+    require: [true, "Vui đính kèm file hóa đơn .pdf."],
+  },
+
+  status: {
+    type: Boolean,
+  },
+
   softDelete: {
     type: Date,
   },
