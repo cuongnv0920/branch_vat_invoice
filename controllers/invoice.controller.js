@@ -1,65 +1,101 @@
 const Invoice = require("../models/invoice.model");
 const { validationResult } = require("express-validator");
+const path = require("path");
+const xml2js = require("xml2js");
+const fs = require("fs");
 
 // function escapeRegex(text) {
 //   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 // }
 
-module.exports.getAll = async (req, res, next) => {
-  //   const limit = req.query._limit || 20;
-  //   const page = req.query._page || 1;
-  //   function searchTerm() {
-  //     // search
-  //     if (req.query._search) {
-  //       const regex = new RegExp(escapeRegex(req.query._search), "i");
-  //       return [{ fullName: regex }, { email: regex }];
-  //     } else {
-  //       return [{}];
-  //     }
-  //   }
-  //   function filterRoom() {
-  //     // filter room
-  //     if (req.query._filterRoom) {
-  //       return [{ softDelete: null }, { room: req.query._filterRoom }];
-  //     } else {
-  //       return [{ softDelete: null }];
-  //     }
-  //   }
-  //   function filterLevel() {
-  //     // filter level
-  //     if (req.query._filterLevel) {
-  //       return {
-  //         level: req.query._filterLevel,
-  //       };
-  //     } else {
-  //       return {};
-  //     }
-  //   }
-  //   await User.find({
-  //     $and: filterRoom(),
-  //     $or: searchTerm(),
-  //   })
-  //     .where(filterLevel())
-  //     .skip(limit * page - limit)
-  //     .limit(limit)
-  //     .populate("room")
-  //     .populate("level")
-  //     .sort({ createdAt: 1 })
-  //     .exec((error, users) => {
-  //       User.countDocuments((error, total) => {
-  //         if (error) return res.status(400).json(error);
-  //         return res.status(200).json({
-  //           userList: users.map(formatUser),
-  //           paginations: {
-  //             limit,
-  //             page: Number(page),
-  //             count: Math.ceil(total / limit),
-  //             total: users.length,
-  //           },
-  //         });
-  //       });
-  //     });
+module.exports.readXml = async (req, res, next) => {
+  const filePath = path.join(__dirname, "..", "public", "cache", "foo.xml");
+  const parper = new xml2js.Parser();
+
+  fs.readFile(filePath, function (err, data) {
+    if (err) {
+      console.error("Error reading file:", err);
+      return;
+    }
+
+    parper.parseString(data, function (err, result) {
+      if (err) {
+        console.error("Error parsing XML:", err);
+        return;
+      }
+
+      const TTChung = result.HDon.DLHDon[0].TTChung[0];
+      const NDNBan = result.HDon.DLHDon[0].NDHDon[0].NBan[0];
+      const { KHHDon, SHDon, NLap } = TTChung;
+      const { Ten, MST } = NDNBan;
+
+      res.json({
+        KHHDon,
+        SHDon,
+        NLap,
+        Ten,
+        MST,
+      });
+    });
+  });
 };
+
+// module.exports.getAll = async (req, res, next) => {
+//     const limit = req.query._limit || 20;
+//     const page = req.query._page || 1;
+
+//     function searchTerm() {
+//       // search
+//       if (req.query._search) {
+//         const regex = new RegExp(escapeRegex(req.query._search), "i");
+//         return [{ fullName: regex }, { email: regex }];
+//       } else {
+//         return [{}];
+//       }
+//     }
+//     function filterRoom() {
+//       // filter room
+//       if (req.query._filterRoom) {
+//         return [{ softDelete: null }, { room: req.query._filterRoom }];
+//       } else {
+//         return [{ softDelete: null }];
+//       }
+//     }
+//     function filterLevel() {
+//       // filter level
+//       if (req.query._filterLevel) {
+//         return {
+//           level: req.query._filterLevel,
+//         };
+//       } else {
+//         return {};
+//       }
+//     }
+//     await User.find({
+//       $and: filterRoom(),
+//       $or: searchTerm(),
+//     })
+//       .where(filterLevel())
+//       .skip(limit * page - limit)
+//       .limit(limit)
+//       .populate("room")
+//       .populate("level")
+//       .sort({ createdAt: 1 })
+//       .exec((error, users) => {
+//         User.countDocuments((error, total) => {
+//           if (error) return res.status(400).json(error);
+//           return res.status(200).json({
+//             userList: users.map(formatUser),
+//             paginations: {
+//               limit,
+//               page: Number(page),
+//               count: Math.ceil(total / limit),
+//               total: users.length,
+//             },
+//           });
+//         });
+//       });
+// };
 
 // function formatUser(data) {
 //   const {
