@@ -1,19 +1,19 @@
 const multer = require("multer");
 
-const storage = multer.diskStorage({
+const storageCache = multer.diskStorage({
   destination: (req, file, cd) => {
-    cd(null, "./public/cace/");
+    cd(null, "./public/cache/");
   },
   filename: (req, file, cd) => {
     cd(null, Date.now() + "-" + file.originalname);
   },
 });
 
-const upload = multer({
-  storage: storage,
+const uploadCache = multer({
+  storage: storageCache,
   limits: {
     fileSize: "8mb",
   },
 });
 
-module.exports = upload;
+module.exports = uploadCache;
