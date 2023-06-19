@@ -2,20 +2,20 @@ const User = require("../models/user.model");
 const { validationResult } = require("express-validator");
 const md5 = require("md5");
 const jwt = require("jsonwebtoken");
-const defaultUser = require("../config/defaultUser");
+const userDefault = require("../config/userConfig");
 
 function escapeRegex(text) {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 }
 
-User.exists({ email: defaultUser.email }).then((user) => {
+User.exists({ email: userDefault.email }).then((user) => {
   if (!user) {
     return User.create({
-      email: defaultUser.email,
-      username: defaultUser.username,
-      fullName: defaultUser.fullName,
-      password: md5(defaultUser.password),
-      role: defaultUser.role,
+      email: userDefault.email,
+      username: userDefault.username,
+      fullName: userDefault.fullName,
+      password: md5(userDefault.password),
+      role: userDefault.role,
       createdAt: Date.now(),
     });
   }

@@ -1,4 +1,4 @@
-const defaultUser = {
+const userDefault = {
   email: "admin@bidv.com.vn",
   username: "admin",
   password: "abc@123",
@@ -6,4 +6,4 @@ const defaultUser = {
   fullName: "Admin",
 };
 
-module.exports = defaultUser;
+module.exports = userDefault;
