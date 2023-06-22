@@ -39,7 +39,7 @@ module.exports.readXml = async (req, res, next) => {
           return false;
         });
 
-        const extractedData = filteredData.map((item) => {
+        const data = filteredData.map((item) => {
           const { KHHDon, SHDon, NLap } = item.TTChung[0];
           const { Ten, MST, DChi } = item.NDHDon[0].NBan[0];
           const { TgTTTBSo } = item.NDHDon[0].TToan[0];
@@ -55,7 +55,7 @@ module.exports.readXml = async (req, res, next) => {
           };
         });
 
-        res.status(200).json(extractedData);
+        res.status(200).json({ invoice: data });
       });
     }
   );
