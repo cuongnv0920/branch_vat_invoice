@@ -1,16 +1,16 @@
 const multer = require("multer");
 
-const cacheStorage = multer.diskStorage({
+const temporatyStorage = multer.diskStorage({
   destination: (req, file, cd) => {
-    cd(null, "./public/cache/");
+    cd(null, "./public/temporary/");
   },
   filename: (req, file, cd) => {
     cd(null, Date.now() + "-" + file.originalname);
   },
 });
 
-const cacheConfig = multer({
-  storage: cacheStorage,
+const temporatyConfig = multer({
+  storage: temporatyStorage,
   limits: {
     fileSize: "8mb",
   },
@@ -33,7 +33,7 @@ const uploadConfig = multer({
 });
 
 const uploads = {
-  cache: cacheConfig,
+  temporaty: temporatyConfig,
   uploads: uploadConfig,
 };
 

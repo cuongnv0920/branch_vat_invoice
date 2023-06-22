@@ -2,17 +2,27 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const invoiceSchema = new Schema({
+  taxCode: {
+    type: String,
+    require: [true, "Vui lòng nhập mã số thuế của đơn vị cung cấp."],
+  },
+
+  address: {
+    type: String,
+    require: [true, "Vui lòng nhập địa chỉ đơn vị cung cấp."],
+  },
+
   serial: {
     type: String,
     require: [true, "Vui lòng nhập Ký hiệu hóa đơn."],
   },
 
-  no: {
+  invoiceNo: {
     type: String,
     require: [true, "Vui lòng nhập Số hóa đơn."],
   },
 
-  date: {
+  invoiceDate: {
     type: Date,
     require: [true, "Vui lòng chọn Ngày hóa đơn."],
   },
