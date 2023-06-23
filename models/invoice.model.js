@@ -7,11 +7,6 @@ const invoiceSchema = new Schema({
     require: [true, "Vui lòng nhập mã số thuế của đơn vị cung cấp."],
   },
 
-  address: {
-    type: String,
-    require: [true, "Vui lòng nhập địa chỉ đơn vị cung cấp."],
-  },
-
   serial: {
     type: String,
     require: [true, "Vui lòng nhập Ký hiệu hóa đơn."],
@@ -42,28 +37,29 @@ const invoiceSchema = new Schema({
     require: [true, "Vui lòng nhập Nội dung thanh toán."],
   },
 
-  createUser: {
+  createdUser: {
     type: mongoose.Schema.ObjectId,
     ref: "Users",
   },
 
-  approveUser: {
+  approvedUser: {
     type: mongoose.Schema.ObjectId,
     ref: "Users",
   },
 
-  file_1: {
+  filePdf: {
     type: String,
-    require: [true, "Vui đính kèm file hóa đơn .xml."],
+    require: [true, "Vui lòng chọn tệp tin pdf."],
   },
 
-  file_2: {
+  fileXml: {
     type: String,
-    require: [true, "Vui đính kèm file hóa đơn .pdf."],
+    require: [true, "Vui lòng chọn tệp tin xml."],
   },
 
   status: {
     type: Boolean,
+    default: false,
   },
 
   softDelete: {
