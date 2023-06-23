@@ -1,40 +1,40 @@
 const multer = require("multer");
 
-const temporatyStorage = multer.diskStorage({
+const xmlStorage = multer.diskStorage({
   destination: (req, file, cd) => {
-    cd(null, "./public/temporary/");
+    cd(null, "./public/xmlUpload/");
   },
   filename: (req, file, cd) => {
     cd(null, Date.now() + "-" + file.originalname);
   },
 });
 
-const temporatyConfig = multer({
-  storage: temporatyStorage,
+const xmlConfig = multer({
+  storage: xmlStorage,
   limits: {
     fileSize: "8mb",
   },
 });
 
-const uploadStorage = multer.diskStorage({
+const pdfStorage = multer.diskStorage({
   destination: (req, file, cd) => {
-    cd(null, "./public/uploads/");
+    cd(null, "./public/pdfUpload/");
   },
   filename: (req, file, cd) => {
     cd(null, Date.now() + "-" + file.originalname);
   },
 });
 
-const uploadConfig = multer({
-  storage: uploadStorage,
+const pdfConfig = multer({
+  storage: pdfStorage,
   limits: {
     fileSize: "8mb",
   },
 });
 
 const uploads = {
-  temporaty: temporatyConfig,
-  uploads: uploadConfig,
+  xml: xmlConfig,
+  pdf: pdfConfig,
 };
 
 module.exports = uploads;

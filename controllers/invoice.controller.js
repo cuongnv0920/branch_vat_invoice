@@ -1,20 +1,119 @@
 const Invoice = require("../models/invoice.model");
 const { validationResult } = require("express-validator");
-const path = require("path");
 const xml2js = require("xml2js");
 const fs = require("fs");
 const parser = new xml2js.Parser();
 
+function escapeRegex(text) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+
+module.exports.getAll = async (req, res, next) => {
+  const limit = req.query._limit || 20;
+  const page = req.query._page || 1;
+
+  function searchTerm() {
+    // search
+    if (req.query._search) {
+      const regex = new RegExp(escapeRegex(req.query._search), "i");
+      return [{ taxCode: regex }, { createdUser: regex }];
+    } else {
+      return [{}];
+    }
+  }
+
+  function filterRoom() {
+    // filter room
+    if (req.query._filterRoom) {
+      return [{ softDelete: null }, { room: req.query._filterRoom }];
+    } else {
+      return [{ softDelete: null }];
+    }
+  }
+
+  function filterStatus() {
+    // filter level
+    if (req.query._filterStatus) {
+      return {
+        status: req.query._filterStatus,
+      };
+    } else {
+      return {};
+    }
+  }
+
+  await Invoice.find({
+    $and: filterRoom(),
+    $or: searchTerm(),
+  })
+    .where(filterStatus())
+    .skip(limit * page - limit)
+    .limit(limit)
+    .populate("createdUser")
+    .sort({ createdAt: 1 })
+    .exec((error, invoives) => {
+      Invoice.countDocuments((error, total) => {
+        if (error) return res.status(400).json(error);
+
+        return res.status(200).json({
+          invoiceList: invoives.map(formatInvoice),
+          paginations: {
+            limit,
+            page: Number(page),
+            count: Math.ceil(total / limit),
+            total: invoives.length,
+          },
+        });
+      });
+    });
+};
+
+function formatInvoice(data) {
+  const {
+    _id: id,
+    taxCode,
+    serial,
+    invoiceNo,
+    invoiceDate,
+    seller,
+    payment,
+    content,
+    createdUser,
+    approvedUser,
+    filePdf,
+    fileXml,
+    status,
+    createdAt,
+    updatedAt,
+  } = data;
+  return {
+    id,
+    taxCode,
+    serial,
+    invoiceNo,
+    invoiceDate,
+    seller,
+    payment,
+    content,
+    createdUser,
+    approvedUser,
+    filePdf,
+    fileXml,
+    status,
+    createdAt,
+    updatedAt,
+  };
+}
+
 module.exports.readXml = async (req, res, next) => {
-  function upload() {
+  function fileXml() {
     if (req.file) {
       const uploadFile = req.file;
-
       return {
         path: uploadFile.path.split("\\").slice(1).join("/"),
         size: uploadFile.size,
-        originalname: uploadFile.originalname,
-        mimetype: uploadFile.mimetype,
+        name: uploadFile.originalname,
+        type: uploadFile.mimetype,
       };
     } else {
       return res.status(400).json({ message: "Không có file được tải lên." });
@@ -22,7 +121,7 @@ module.exports.readXml = async (req, res, next) => {
   }
 
   fs.readFile(
-    __dirname + `/../public/${upload().path}`,
+    __dirname + `/../public/${fileXml().path}`,
     function (error, data) {
       parser.parseString(data, function (error, result) {
         const filteredData = result.HDon.DLHDon.filter((item) => {
@@ -52,6 +151,7 @@ module.exports.readXml = async (req, res, next) => {
             taxCode: MST,
             address: DChi,
             payment: TgTTTBSo,
+            path: fileXml().path,
           };
         });
 
@@ -59,4 +159,57 @@ module.exports.readXml = async (req, res, next) => {
       });
     }
   );
+};
+
+module.exports.create = async (req, res, next) => {
+  const errors = [];
+
+  function upload() {
+    if (req.file) {
+      const uploadFile = req.file;
+
+      return {
+        path: uploadFile.path.split("\\").slice(1).join("/"),
+        size: uploadFile.size,
+        originalname: uploadFile.originalname,
+        mimetype: uploadFile.mimetype,
+      };
+    } else {
+      return res.status(400).json({ message: "Không có file được tải lên." });
+    }
+  }
+
+  const validationError = validationResult(req);
+  if (!validationError.isEmpty()) {
+    Object.keys(validationError.mapped()).forEach((field) => {
+      errors.push(validationError.mapped()[field]["msg"]);
+    });
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ message: errors[0] });
+  } else {
+    await Invoice.create({
+      filePdf: upload().path,
+      fileXml: req.body.fileXml,
+      serial: req.body.serial,
+      invoiceNo: req.body.invoiceNo,
+      invoiceDate: new Date(req.body.invoiceDate),
+      taxCode: req.body.taxCode,
+      seller: req.body.seller,
+      content: req.body.content,
+      payment: req.body.payment,
+      createdUser: req.body.createdUser,
+      createdAt: Date.now(),
+      updatedAt: null,
+    })
+      .then(() => {
+        return res
+          .status(200)
+          .json({ message: "Thêm mới hóa đơn thành công." });
+      })
+      .catch((error) => {
+        return res.status(400).join({ message: error });
+      });
+  }
 };
