@@ -1,40 +1,19 @@
 const multer = require("multer");
 
-const xmlStorage = multer.diskStorage({
+const storage = multer.diskStorage({
   destination: (req, file, cd) => {
-    cd(null, "./public/xmlUpload/");
+    cd(null, "./public/uploads/");
   },
   filename: (req, file, cd) => {
     cd(null, Date.now() + "-" + file.originalname);
   },
 });
 
-const xmlConfig = multer({
-  storage: xmlStorage,
+const uploads = multer({
+  storage: storage,
   limits: {
     fileSize: "8mb",
   },
 });
-
-const pdfStorage = multer.diskStorage({
-  destination: (req, file, cd) => {
-    cd(null, "./public/pdfUpload/");
-  },
-  filename: (req, file, cd) => {
-    cd(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const pdfConfig = multer({
-  storage: pdfStorage,
-  limits: {
-    fileSize: "8mb",
-  },
-});
-
-const uploads = {
-  xml: xmlConfig,
-  pdf: pdfConfig,
-};
 
 module.exports = uploads;
