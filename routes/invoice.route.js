@@ -5,11 +5,11 @@ const controller = require("../controllers/invoice.controller");
 const upload = require("../config/storageConf");
 
 router.get("/getAll", controller.getAll);
-router.post("/readXml", upload.xml.single("fileXml"), controller.readXml);
+router.post("/xmlRead", upload.single("xmlFile"), controller.xmlRead);
 // router.get("/get/:id", controller.get);
 router.post(
   "/create",
-  upload.pdf.single("filePdf"),
+  upload.single("pdfFile"),
   validator.validatorCreate(),
   controller.create
 );

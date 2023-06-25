@@ -80,8 +80,8 @@ function formatInvoice(data) {
     content,
     createdUser,
     approvedUser,
-    filePdf,
-    fileXml,
+    pdfFile,
+    xmlFile,
     status,
     createdAt,
     updatedAt,
@@ -97,23 +97,23 @@ function formatInvoice(data) {
     content,
     createdUser,
     approvedUser,
-    filePdf,
-    fileXml,
+    pdfFile,
+    xmlFile,
     status,
     createdAt,
     updatedAt,
   };
 }
 
-module.exports.readXml = async (req, res, next) => {
-  function fileXml() {
+module.exports.xmlRead = async (req, res, next) => {
+  function xmlFile() {
     if (req.file) {
-      const uploadFile = req.file;
+      const file = req.file;
       return {
-        path: uploadFile.path.split("\\").slice(1).join("/"),
-        size: uploadFile.size,
-        name: uploadFile.originalname,
-        type: uploadFile.mimetype,
+        path: file.path.split("\\").slice(1).join("/"),
+        size: file.size,
+        name: file.originalname,
+        type: file.mimetype,
       };
     } else {
       return res.status(400).json({ message: "Không có file được tải lên." });
@@ -121,7 +121,7 @@ module.exports.readXml = async (req, res, next) => {
   }
 
   fs.readFile(
-    __dirname + `/../public/${fileXml().path}`,
+    __dirname + `/../public/${xmlFile().path}`,
     function (error, data) {
       parser.parseString(data, function (error, result) {
         const filteredData = result.HDon.DLHDon.filter((item) => {
@@ -151,7 +151,7 @@ module.exports.readXml = async (req, res, next) => {
             taxCode: MST,
             address: DChi,
             payment: TgTTTBSo,
-            path: fileXml().path,
+            xmlFile: xmlFile().path,
           };
         });
 
@@ -166,13 +166,12 @@ module.exports.create = async (req, res, next) => {
 
   function upload() {
     if (req.file) {
-      const uploadFile = req.file;
-
+      const file = req.file;
       return {
-        path: uploadFile.path.split("\\").slice(1).join("/"),
-        size: uploadFile.size,
-        originalname: uploadFile.originalname,
-        mimetype: uploadFile.mimetype,
+        path: file.path.split("\\").slice(1).join("/"),
+        size: file.size,
+        name: file.originalname,
+        type: file.mimetype,
       };
     } else {
       return res.status(400).json({ message: "Không có file được tải lên." });
@@ -190,8 +189,8 @@ module.exports.create = async (req, res, next) => {
     return res.status(400).json({ message: errors[0] });
   } else {
     await Invoice.create({
-      filePdf: upload().path,
-      fileXml: req.body.fileXml,
+      pdfFile: upload().path,
+      xmlFile: req.body.xmlFile,
       serial: req.body.serial,
       invoiceNo: req.body.invoiceNo,
       invoiceDate: new Date(req.body.invoiceDate),

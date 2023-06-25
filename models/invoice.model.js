@@ -47,12 +47,12 @@ const invoiceSchema = new Schema({
     ref: "Users",
   },
 
-  filePdf: {
+  pdfFile: {
     type: String,
     require: [true, "Vui lòng chọn tệp tin pdf."],
   },
 
-  fileXml: {
+  xmlFile: {
     type: String,
     require: [true, "Vui lòng chọn tệp tin xml."],
   },
