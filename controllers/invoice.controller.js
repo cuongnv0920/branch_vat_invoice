@@ -124,38 +124,47 @@ module.exports.xmlRead = async (req, res, next) => {
     __dirname + `/../public/${xmlFile().path}`,
     function (error, data) {
       parser.parseString(data, function (error, result) {
-        const filteredData = result.HDon.DLHDon.filter((item) => {
-          const { TTChung, NDHDon } = item;
-          if (TTChung && NDHDon) {
-            const { KHHDon, SHDon, NLap } = TTChung[0];
-            const { NBan, TToan } = NDHDon[0];
-            if (NBan && TToan) {
-              const { Ten, MST, DChi } = NBan[0];
-              const { TgTTTBSo } = TToan[0];
-              return KHHDon && SHDon && NLap && Ten && MST && DChi && TgTTTBSo;
+        if (result && result.HDon) {
+          const filteredData = result.HDon.DLHDon.filter((item) => {
+            const { TTChung, NDHDon } = item;
+            if (TTChung && NDHDon) {
+              const { KHHDon, SHDon, NLap } = TTChung[0];
+              const { NBan, TToan } = NDHDon[0];
+              if (NBan && TToan) {
+                const { Ten, MST, DChi } = NBan[0];
+                const { TgTTTBSo } = TToan[0];
+                return (
+                  KHHDon && SHDon && NLap && Ten && MST && DChi && TgTTTBSo
+                );
+              }
             }
-          }
-          return false;
-        });
+            return false;
+          });
 
-        const data = filteredData.map((item) => {
-          const { KHHDon, SHDon, NLap } = item.TTChung[0];
-          const { Ten, MST, DChi } = item.NDHDon[0].NBan[0];
-          const { TgTTTBSo } = item.NDHDon[0].TToan[0];
+          const data = filteredData.map((item) => {
+            const { KHHDon, SHDon, NLap } = item.TTChung[0];
+            const { Ten, MST, DChi } = item.NDHDon[0].NBan[0];
+            const { TgTTTBSo } = item.NDHDon[0].TToan[0];
 
-          return {
-            serial: KHHDon,
-            invoiceNo: SHDon,
-            invoiceDate: NLap,
-            seller: Ten,
-            taxCode: MST,
-            address: DChi,
-            payment: TgTTTBSo,
-            xmlFile: xmlFile().path,
-          };
-        });
+            return {
+              serial: KHHDon,
+              invoiceNo: SHDon,
+              invoiceDate: NLap,
+              seller: Ten,
+              taxCode: MST,
+              address: DChi,
+              payment: TgTTTBSo,
+              xmlFile: xmlFile().path,
+            };
+          });
 
-        res.status(200).json({ invoice: data });
+          res.status(200).json({ invoice: data });
+        } else {
+          return res.status(400).json({
+            message:
+              "Máy chủ không thể đọc tệp tin XML được gửi lên, vui lòng nhập thủ công.",
+          });
+        }
       });
     }
   );
@@ -164,9 +173,9 @@ module.exports.xmlRead = async (req, res, next) => {
 module.exports.create = async (req, res, next) => {
   const errors = [];
 
-  function upload() {
-    if (req.file) {
-      const file = req.file;
+  function pdfUpload() {
+    if (req.files.pdfFile) {
+      const file = req.files.pdfFile[0];
       return {
         path: file.path.split("\\").slice(1).join("/"),
         size: file.size,
@@ -174,7 +183,23 @@ module.exports.create = async (req, res, next) => {
         type: file.mimetype,
       };
     } else {
-      return res.status(400).json({ message: "Không có file được tải lên." });
+      return;
+    }
+  }
+
+  function xmlUpload() {
+    if (req.files.xmlFile) {
+      const file = req.files.xmlFile[0];
+      return {
+        path: file.path.split("\\").slice(1).join("/"),
+        size: file.size,
+        name: file.originalname,
+        type: file.mimetype,
+      };
+    } else {
+      return {
+        path: req.body.xmlFile,
+      };
     }
   }
 
@@ -189,8 +214,8 @@ module.exports.create = async (req, res, next) => {
     return res.status(400).json({ message: errors[0] });
   } else {
     await Invoice.create({
-      pdfFile: upload().path,
-      xmlFile: req.body.xmlFile,
+      pdfFile: pdfUpload().path,
+      xmlFile: xmlUpload().path,
       serial: req.body.serial,
       invoiceNo: req.body.invoiceNo,
       invoiceDate: new Date(req.body.invoiceDate),

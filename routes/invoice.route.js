@@ -9,7 +9,10 @@ router.post("/xmlRead", upload.single("xmlFile"), controller.xmlRead);
 // router.get("/get/:id", controller.get);
 router.post(
   "/create",
-  upload.single("pdfFile"),
+  upload.fields([
+    { name: "xmlFile", maxCount: 1 },
+    { name: "pdfFile", maxCount: 1 },
+  ]),
   validator.validatorCreate(),
   controller.create
 );
