@@ -62,6 +62,10 @@ const invoiceSchema = new Schema({
     default: false,
   },
 
+  inputStatus: {
+    type: Boolean,
+  },
+
   softDelete: {
     type: Date,
   },

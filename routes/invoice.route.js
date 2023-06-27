@@ -6,7 +6,7 @@ const upload = require("../config/storageConf");
 
 router.get("/getAll", controller.getAll);
 router.post("/xmlRead", upload.single("xmlFile"), controller.xmlRead);
-// router.get("/get/:id", controller.get);
+router.get("/get/:id", controller.get);
 router.post(
   "/create",
   upload.fields([
@@ -16,7 +16,15 @@ router.post(
   validator.validatorCreate(),
   controller.create
 );
-// router.put("/update/:id", validator.validatorUpdate(), controller.update);
+router.put(
+  "/update/:id",
+  upload.fields([
+    { name: "xmlFile", maxCount: 1 },
+    { name: "pdfFile", maxCount: 1 },
+  ]),
+  validator.validatorUpdate(),
+  controller.update
+);
 // router.put("/delete/:id", controller.delete);
 
 module.exports = router;

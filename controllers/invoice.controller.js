@@ -2,6 +2,7 @@ const Invoice = require("../models/invoice.model");
 const { validationResult } = require("express-validator");
 const xml2js = require("xml2js");
 const fs = require("fs");
+const { error } = require("console");
 const parser = new xml2js.Parser();
 
 function escapeRegex(text) {
@@ -83,6 +84,7 @@ function formatInvoice(data) {
     pdfFile,
     xmlFile,
     status,
+    inputStatus,
     createdAt,
     updatedAt,
   } = data;
@@ -100,10 +102,22 @@ function formatInvoice(data) {
     pdfFile,
     xmlFile,
     status,
+    inputStatus,
     createdAt,
     updatedAt,
   };
 }
+
+module.exports.get = async (req, res, next) => {
+  await Invoice.findById(req.params.id)
+    .where({ softDelete: "" })
+    .populate("createdUser")
+    .exec((error, invoice) => {
+      if (error) return res.status(400).json(error);
+
+      return res.status(200).json(invoice);
+    });
+};
 
 module.exports.xmlRead = async (req, res, next) => {
   function xmlFile() {
@@ -224,6 +238,7 @@ module.exports.create = async (req, res, next) => {
       content: req.body.content,
       payment: req.body.payment,
       createdUser: req.body.createdUser,
+      inputStatus: req.body.inputStatus,
       createdAt: Date.now(),
       updatedAt: null,
     })
@@ -234,6 +249,69 @@ module.exports.create = async (req, res, next) => {
       })
       .catch((error) => {
         return res.status(400).join({ message: error });
+      });
+  }
+};
+
+module.exports.update = async (req, res, next) => {
+  const errors = [];
+
+  function pdfUpload() {
+    if (req.files.pdfFile) {
+      const file = req.files.pdfFile[0];
+      return {
+        path: file.path.split("\\").slice(1).join("/"),
+        size: file.size,
+        name: file.originalname,
+        type: file.mimetype,
+      };
+    }
+  }
+
+  function xmlUpload() {
+    if (req.files.xmlFile) {
+      const file = req.files.xmlFile[0];
+      return {
+        path: file.path.split("\\").slice(1).join("/"),
+        size: file.size,
+        name: file.originalname,
+        type: file.mimetype,
+      };
+    }
+  }
+
+  const validationError = validationResult(req);
+  if (!validationError.isEmpty()) {
+    Object.keys(validationError.mapped()).forEach((field) => {
+      errors.push(validationError.mapped()[field]["msg"]);
+    });
+  }
+
+  if (errors.length) {
+    return res.status(400).json({ message: errors[0] });
+  } else {
+    await Invoice.findByIdAndUpdate(
+      {
+        _id: req.params.id,
+      },
+      {
+        pdfFile: pdfUpload()?.path,
+        xmlFile: xmlUpload()?.path,
+        serial: req.body.serial,
+        invoiceNo: req.body.invoiceNo,
+        invoiceDate: new Date(req.body.invoiceDate),
+        taxCode: req.body.taxCode,
+        seller: req.body.seller,
+        content: req.body.content,
+        payment: req.body.payment,
+        updatedAtAt: Date.now(),
+      }
+    )
+      .then(() => {
+        return res.status(200).json({ message: "Cập nhật thành công." });
+      })
+      .catch((error) => {
+        return res.status(400).json({ message: error });
       });
   }
 };
