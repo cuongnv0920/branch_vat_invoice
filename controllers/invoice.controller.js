@@ -2,7 +2,6 @@ const Invoice = require("../models/invoice.model");
 const { validationResult } = require("express-validator");
 const xml2js = require("xml2js");
 const fs = require("fs");
-const { error } = require("console");
 const parser = new xml2js.Parser();
 
 function escapeRegex(text) {
@@ -12,12 +11,12 @@ function escapeRegex(text) {
 module.exports.getAll = async (req, res, next) => {
   const limit = req.query._limit || 20;
   const page = req.query._page || 1;
-
+  console.log(req.query);
   function searchTerm() {
     // search
     if (req.query._search) {
       const regex = new RegExp(escapeRegex(req.query._search), "i");
-      return [{ taxCode: regex }, { createdUser: regex }];
+      return [{ invoiceNo: regex }, { taxCode: regex }];
     } else {
       return [{}];
     }
@@ -50,7 +49,14 @@ module.exports.getAll = async (req, res, next) => {
     .where(filterStatus())
     .skip(limit * page - limit)
     .limit(limit)
-    .populate("createdUser")
+    .populate({
+      path: "createdUser",
+      select: "fullName",
+      populate: {
+        path: "room",
+        select: "name",
+      },
+    })
     .sort({ createdAt: 1 })
     .exec((error, invoives) => {
       Invoice.countDocuments((error, total) => {
@@ -80,6 +86,7 @@ function formatInvoice(data) {
     payment,
     content,
     createdUser,
+    createdRoom,
     approvedUser,
     pdfFile,
     xmlFile,
@@ -98,6 +105,7 @@ function formatInvoice(data) {
     payment,
     content,
     createdUser,
+    createdRoom,
     approvedUser,
     pdfFile,
     xmlFile,
@@ -314,4 +322,21 @@ module.exports.update = async (req, res, next) => {
         return res.status(400).json({ message: error });
       });
   }
+};
+
+module.exports.delete = async (req, res, next) => {
+  await Invoice.updateOne(
+    {
+      _id: req.params.id,
+    },
+    {
+      softDelete: Date.now(),
+    }
+  )
+    .then(() => {
+      return res.status(200).json({ message: "Xóa thành công." });
+    })
+    .catch((error) => {
+      return res.status(400).json({ message: error });
+    });
 };
