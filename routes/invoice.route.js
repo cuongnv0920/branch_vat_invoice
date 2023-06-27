@@ -25,6 +25,6 @@ router.put(
   validator.validatorUpdate(),
   controller.update
 );
-// router.put("/delete/:id", controller.delete);
+router.put("/delete/:id", controller.delete);
 
 module.exports = router;
