@@ -37,6 +37,11 @@ const invoiceSchema = new Schema({
     require: [true, "Vui lòng nhập Nội dung thanh toán."],
   },
 
+  createdRoom: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Rooms",
+  },
+
   createdUser: {
     type: mongoose.Schema.ObjectId,
     ref: "Users",

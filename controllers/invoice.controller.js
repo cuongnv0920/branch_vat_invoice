@@ -11,7 +11,7 @@ function escapeRegex(text) {
 module.exports.getAll = async (req, res, next) => {
   const limit = req.query._limit || 20;
   const page = req.query._page || 1;
-  console.log(req.query);
+
   function searchTerm() {
     // search
     if (req.query._search) {
@@ -25,7 +25,7 @@ module.exports.getAll = async (req, res, next) => {
   function filterRoom() {
     // filter room
     if (req.query._filterRoom) {
-      return [{ softDelete: null }, { room: req.query._filterRoom }];
+      return [{ softDelete: null }, { createdRoom: req.query._filterRoom }];
     } else {
       return [{ softDelete: null }];
     }
@@ -52,10 +52,14 @@ module.exports.getAll = async (req, res, next) => {
     .populate({
       path: "createdUser",
       select: "fullName",
-      populate: {
-        path: "room",
-        select: "name",
-      },
+    })
+    .populate({
+      path: "approvedUser",
+      select: "fullName",
+    })
+    .populate({
+      path: "createdRoom",
+      select: "name",
     })
     .sort({ createdAt: 1 })
     .exec((error, invoives) => {
@@ -245,6 +249,7 @@ module.exports.create = async (req, res, next) => {
       seller: req.body.seller,
       content: req.body.content,
       payment: req.body.payment,
+      createdRoom: req.body.createdRoom,
       createdUser: req.body.createdUser,
       inputStatus: req.body.inputStatus,
       createdAt: Date.now(),
@@ -312,6 +317,7 @@ module.exports.update = async (req, res, next) => {
         seller: req.body.seller,
         content: req.body.content,
         payment: req.body.payment,
+        role: req.body.role,
         updatedAtAt: Date.now(),
       }
     )
@@ -335,6 +341,25 @@ module.exports.delete = async (req, res, next) => {
   )
     .then(() => {
       return res.status(200).json({ message: "Xóa thành công." });
+    })
+    .catch((error) => {
+      return res.status(400).json({ message: error });
+    });
+};
+
+module.exports.updateStatus = async (req, res, next) => {
+  await Invoice.updateOne(
+    {
+      _id: req.params.id,
+    },
+    {
+      status: req.body.status,
+      approvedUser: req.body.approvedUser,
+      updatedAt: Date.now(),
+    }
+  )
+    .then(() => {
+      return res.status(200).json({ message: "Duyệt thành công." });
     })
     .catch((error) => {
       return res.status(400).json({ message: error });
