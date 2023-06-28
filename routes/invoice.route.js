@@ -26,5 +26,6 @@ router.put(
   controller.update
 );
 router.put("/delete/:id", controller.delete);
+router.put("/updateStatus/:id", controller.updateStatus);
 
 module.exports = router;
