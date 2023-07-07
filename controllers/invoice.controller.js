@@ -61,7 +61,7 @@ module.exports.getAll = async (req, res, next) => {
       path: "createdRoom",
       select: "name",
     })
-    .sort({ createdAt: 1 })
+    .sort({ createdAt: -1 })
     .exec((error, invoives) => {
       Invoice.countDocuments((error, total) => {
         if (error) return res.status(400).json(error);
